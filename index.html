@@ -233,6 +233,38 @@
   <button class="btn-setup" id="btnStart" onclick="startApp()" disabled>⚡ Iniciar meu app</button>
 </div>
 
+<!-- ── PROFILE MODAL ── -->
+<div class="modal-overlay" id="profileModal" onclick="if(event.target===this)closeProfile()">
+  <div class="modal-box">
+    <div class="modal-drag"></div>
+    <div class="modal-title">👤 Editar Perfil</div>
+    <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="pName" type="text" placeholder="Seu nome"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group"><label class="form-label">Peso (kg)</label><input class="form-input" id="pWeight" type="number" inputmode="decimal" placeholder="Ex: 80"></div>
+      <div class="form-group"><label class="form-label">Altura (cm)</label><input class="form-input" id="pHeight" type="number" inputmode="decimal" placeholder="Ex: 178"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group"><label class="form-label">Idade</label><input class="form-input" id="pAge" type="number" inputmode="numeric" placeholder="Ex: 27"></div>
+      <div class="form-group"><label class="form-label">Objetivo</label><input class="form-input" id="pGoal" type="text" placeholder="Ex: Ganhar massa"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="margin-bottom:8px">Cor tema do app</label>
+      <div class="color-grid" id="profileColorGrid">
+        <div class="color-opt" data-color="#e8ff47" data-rgb="232,255,71" onclick="selectProfileColor(this)">🟡<br>Amarelo</div>
+        <div class="color-opt" data-color="#00c8ff" data-rgb="0,200,255" onclick="selectProfileColor(this)">🔵<br>Azul</div>
+        <div class="color-opt" data-color="#39ff14" data-rgb="57,255,20" onclick="selectProfileColor(this)">🟢<br>Verde</div>
+        <div class="color-opt" data-color="#ff3b3b" data-rgb="255,59,59" onclick="selectProfileColor(this)">🔴<br>Vermelho</div>
+        <div class="color-opt" data-color="#bf7fff" data-rgb="191,127,255" onclick="selectProfileColor(this)">🟣<br>Roxo</div>
+        <div class="color-opt" data-color="#ff6eb4" data-rgb="255,110,180" onclick="selectProfileColor(this)">🩷<br>Rosa</div>
+        <div class="color-opt" data-color="#ff8c00" data-rgb="255,140,0" onclick="selectProfileColor(this)">🟠<br>Laranja</div>
+        <div class="color-opt" data-color="#e0e0e0" data-rgb="224,224,224" onclick="selectProfileColor(this)">⚪<br>Branco</div>
+      </div>
+    </div>
+    <button class="modal-close-btn" onclick="saveProfile()">✓ Salvar alterações</button>
+    <button class="modal-close-btn ghost" onclick="closeProfile()">Cancelar</button>
+  </div>
+</div>
+
 <!-- ── INSTALL MODAL ── -->
 <div class="modal-overlay" id="installModal" onclick="if(event.target===this)closeInstall()">
   <div class="modal-box">
@@ -282,6 +314,7 @@
       <div class="header-sub">Hipertrofia · Seg–Sex</div>
     </div>
     <div class="header-actions">
+      <button class="btn-sm btn-ghost" onclick="openProfile()">👤</button>
       <button class="btn-sm btn-ghost" onclick="openInstall()">📱</button>
       <button class="btn-sm btn-accent" onclick="openInstall()">Instalar</button>
     </div>
@@ -447,6 +480,54 @@ function getHistory(dk,idx){return JSON.parse(localStorage.getItem(weightKey(dk,
 
 function openInstall(){document.getElementById('installModal').classList.add('open');}
 function closeInstall(){document.getElementById('installModal').classList.remove('open');}
+
+// ── Profile modal ─────────────────────────────────────────────────
+let profileColor = '';
+let profileRgb = '';
+
+function selectProfileColor(el) {
+  document.querySelectorAll('#profileColorGrid .color-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  profileColor = el.dataset.color;
+  profileRgb = el.dataset.rgb;
+}
+
+function openProfile() {
+  const p = JSON.parse(localStorage.getItem('treino_profile') || '{}');
+  document.getElementById('pName').value   = p.name   || '';
+  document.getElementById('pWeight').value = p.weight || '';
+  document.getElementById('pHeight').value = p.height || '';
+  document.getElementById('pAge').value    = p.age    || '';
+  document.getElementById('pGoal').value   = p.goal   || '';
+  // Marca a cor atual no grid
+  const currentColor = p.color || '#e8ff47';
+  profileColor = currentColor;
+  profileRgb   = p.rgb || '232,255,71';
+  document.querySelectorAll('#profileColorGrid .color-opt').forEach(o => {
+    o.classList.toggle('selected', o.dataset.color === currentColor);
+  });
+  document.getElementById('profileModal').classList.add('open');
+}
+
+function closeProfile() { document.getElementById('profileModal').classList.remove('open'); }
+
+function saveProfile() {
+  const p = JSON.parse(localStorage.getItem('treino_profile') || '{}');
+  const name   = document.getElementById('pName').value.trim();
+  const weight = document.getElementById('pWeight').value.trim();
+  const height = document.getElementById('pHeight').value.trim();
+  const age    = document.getElementById('pAge').value.trim();
+  const goal   = document.getElementById('pGoal').value.trim();
+  if (name)   p.name   = name;
+  if (weight) p.weight = weight;
+  if (height) p.height = height;
+  if (age)    p.age    = age;
+  if (goal)   p.goal   = goal;
+  if (profileColor) { p.color = profileColor; p.rgb = profileRgb; }
+  try { localStorage.setItem('treino_profile', JSON.stringify(p)); } catch(e) {}
+  applyProfile(p);
+  closeProfile();
+}
 
 let editingNew=false;
 function openEdit(dk,idx){
